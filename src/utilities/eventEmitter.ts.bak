@@ -1,0 +1,33 @@
+type EventMap = Record<string, any>;
+
+type EventKey<T extends EventMap> = string & keyof T;
+type EventReciever<T> = ( params : T ) => void;
+
+interface Emitter<T extends EventMap>
+{
+	on<K extends EventKey<T>>( event : K, callback : EventReciever<T[K]> ) : void;
+	off<K extends EventKey<T>>( event : K, callback : EventReciever<T[K]> ) : void;
+	emit<K extends EventKey<T>>( event : K, params : T[K] ) : void;
+}
+
+export function eventEmitter<T extends EventMap>() : Emitter<T>
+{
+	const listeners : {
+		[ K in keyof EventMap ]? : Array<( p : EventMap[K] ) => void>;
+	} = {};
+
+	return {
+		on( key, callback )
+		{
+			listeners[key] = ( listeners[key] || [] ).concat( callback );
+		},
+		off( key, callback )
+		{
+			listeners[key] = ( listeners[key] || [] ).filter( ( cb ) => cb !== callback );
+		},
+		emit( key, params )
+		{
+			( listeners[key] || [] ).forEach( ( cb ) => cb( params ) );
+		}
+	}
+}
